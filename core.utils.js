@@ -47,6 +47,12 @@ module.exports = {
         return count;
     },
 
+    getDistance: function(obj1, obj2) {
+        var dx = Math.abs(obj1.pos.x - obj2.pos.x);
+        var dy = Math.abs(obj1.pos.y - obj2.pos.y);
+        return Math.sqrt(dx + dy);
+    },
+
     /**
      * 크립의 위치에서 지정된 객체들의 위치를 가까운 순으로 정렬한 목록을 가져옵니다.
      * @param creep 크립
@@ -55,15 +61,7 @@ module.exports = {
     getObjectsSorted: function(creep, objectType) {
         var objects = creep.room.find(objectType);
         objects.sort(function(a, b) {
-            var dx = Math.abs(creep.pos.x - a.pos.x);
-            var dy = Math.abs(creep.pos.y - a.pos.y);
-            var dA = Math.sqrt(dx + dy);
-
-            dx = Math.abs(creep.pos.x - b.pos.x);
-            dy = Math.abs(creep.pos.y - b.pos.y);
-            var dB = Math.sqrt(dx + dy);
-
-            return dA > dB;
+            return module.exports.getDistance(creep, a) > module.exports.getDistance(creep, b);
         });
         return objects;
     },
@@ -77,6 +75,11 @@ module.exports = {
         var objects = this.getObjectsSorted(creep, FIND_MY_STRUCTURES);
         for (var i in objects) {
             var object = objects[i];
+            
+            if (object.energy < object.energyCapacity) {
+                creep.memory.target = object.id;
+                return true;
+            }
 
             // 이 건물의 형식이 저장소가 아니면 건너뛴다.
             if (object.structureType != STRUCTURE_CONTAINER) continue;
@@ -107,7 +110,7 @@ module.exports = {
             var object = objects[i];
 
             // 이 객체를 작업 대상으로 지정한 크립의 수를 구한다.
-            var workers = getWorkerCreeps(object);
+            var workers = this.getWorkerCreeps(object);
 
             // 작업 크립의 수보다 작을 경우, 작업 대상으로 선택한다.
             if (workers < Settings.CreepsPerObject) {

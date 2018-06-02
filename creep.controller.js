@@ -1,4 +1,5 @@
-var Utils = require('core.utils.js');
+var Utils = require('core.utils');
+var Settings = require('core.settings');
 
 module.exports = {
     __postProcess(creep, target, result) {
@@ -6,18 +7,16 @@ module.exports = {
         switch (result) {
             // 작업 성공
             case OK:
-                creep.say('Job done');
                 break;
 
             // 거리 내에 없다면 대상 위치로 이동시킨다.
             case ERR_NOT_IN_RANGE:
-                creep.say('Not in range');
                 creep.moveTo(target);
                 break;
 
             // 기타 오류인 경우 출력하고 false를 반환한다.
             default:
-                creep.say('Error: ' + result);
+                creep.say('ERR: ' + result);
                 return false;
         }
         return true;
@@ -25,7 +24,7 @@ module.exports = {
 
     handleTransferJob: function(creep, resourceType = RESOURCE_ENERGY) {
         // 운반하고 있는 에너지가 없다면 수행하지 않는다.
-        if (!creep.carry) return false;
+        if (!creep.carry.energy) return false;
 
         // 대상이 설정되어 있지 않다면 수행한다.
         if (!creep.memory.target) {
@@ -40,7 +39,7 @@ module.exports = {
 
     handleBuildJob: function(creep) {
         // 운반하고 있는 에너지가 없다면 수행하지 않는다.
-        if (!creep.carry) return false;
+        if (!creep.carry.energy) return false;
         
         // 대상이 설정되어 있지 않다면 수행한다.
         if (!creep.memory.target) {
@@ -61,11 +60,8 @@ module.exports = {
 
     handleHarvestJob: function(creep) {
         // 이 크립이 운반하고 있는 에너지가 최대치에 도달한 경우
-        // 반납 작업을 수행하도록 설정한다.
-        if (creep.carry == creep.carryCapacity) {
-            creep.memory.job = Settings.JobTransfer;
-            return true;
-        }
+        // false를 반환한다.건설 작업을 수행하도록 설정한다.
+        if (creep.carry.energy >= creep.carryCapacity) return false;
         
         // 대상이 설정되어 있지 않다면 수행한다.
         if (!creep.memory.target) {
@@ -85,6 +81,29 @@ module.exports = {
 
         // 채집을 시도한다.
         result = creep.harvest(target);
+
+        // 범위를 벗어난 경우
+        if (result == ERR_NOT_IN_RANGE) {
+            // 크립과 소스의 거리를 계산한다.
+            var distance = Utils.getDistance(creep, target);
+
+            // 거리가 RetryUpdateHarvestSourceDistance이하일 경우
+            if (distance <= Settings.RetryUpdateHarvestSourceDistance) {
+                // ChangeTargetTry가 설정되지 않은 경우 1로 설정한다.
+                if (!creep.memory.ChangeTargetTry) creep.memory.ChangeTargetTry = 1;
+                // 설정되어 있는 경우엔 1 증가시킨다.
+                else creep.memory.ChangeTargetTry = creep.memory.ChangeTargetTry + 1;
+
+                // ChangeTargetTry값이 RetryUpdateHarvestSource와 같거나 크면 대상을 다시 설정하도록 메모리의 값을 비운다.
+                if (creep.memory.ChangeTargetTry >= Settings.RetryUpdateHarvestSource) {
+                    creep.memory = {
+                        role: creep.memory.role,
+                        job: creep.memory.job,
+                    };
+                    return true;
+                }
+            }
+        }
         return this.__postProcess(creep, target, result);
     },
 };

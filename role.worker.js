@@ -4,6 +4,7 @@ var Utils = require('core.utils');
 
 module.exports = {
     run: function(creep) {
+        console.log('job: ' + creep.memory.job);
         // 크립에게 할당된 명령을 수행한다.
         if (creep.memory.job === Settings.JobHarvest) {
             var result = CreepController.handleHarvestJob(creep);

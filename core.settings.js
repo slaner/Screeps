@@ -1,5 +1,5 @@
 module.exports = {
-    SpawnerName: 'spawning',
+    SpawnerName: 'spawn',
 
     WorkerPrefix: 'worker',
     WorkerRole: 'worker',
@@ -9,9 +9,10 @@ module.exports = {
     JobUpgrade: 'job_upgrade',
     JobTransfer: 'job_transfer',
 
-    CreepsPerObject: 4,
-    CreepsPerSource: 3,
-    CreepsPerConstructionSite: 1,
+    CreepsPerObject: 5,
 
-    NumberOfWorkers: 5,
+    RetryUpdateHarvestSource: 5,
+    RetryUpdateHarvestSourceDistance: 3,
+    
+    NumberOfWorkers: 30,
 };
