@@ -47,6 +47,17 @@ module.exports = {
         return count;
     },
 
+    /**
+     * 일꾼 크립의 메모리를 초기화합니다.
+     * @param creep 메모리를 초기화할 크립입니다.
+     */
+    resetWorkerCreepMemory: function(creep) {
+        creep.memory = {
+            role: creep.memory.role,
+            job: creep.memory.job,
+        };
+    },
+
     getDistance: function(obj1, obj2) {
         var dx = Math.abs(obj1.pos.x - obj2.pos.x);
         var dy = Math.abs(obj1.pos.y - obj2.pos.y);
