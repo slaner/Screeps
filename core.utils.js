@@ -1,5 +1,5 @@
-var coreSettings = require('core.settings');
-var coreUtils = {
+var Settings = require('core.settings');
+module.exports = {
     /**
      * 크립의 수를 반환합니다.
      * @param excludeDead 죽은 크립도 계수하려면 false, 무시하려면 true 입니다.
@@ -69,61 +69,54 @@ var coreUtils = {
     },
 
     /**
-     * 크립이 가장 가까운 소스를 채집하도록 명령합니다.
-     * @param creep 채집 명령을 수행할 크립
-     * @returns 채집 대상이 설정된 경우 true, 그 외의 경우 false
-     **/
-    harvestClosestSource: function(creep) {
-        // 이미 크립에 대상이 할당된 경우 수행하지 않는다.
-        if (creep.memory.harvesting) return true;
+     * 지정된 크립에서 가장 가까우면서 에너지를 저장할 수 있는 저장소를 대상으로 설정합니다.
+     * @param creep 작업을 수행할 크립
+     * @returns 작업 대상이 설정된 경우 true, 그 외의 경우 false
+     */
+    setClosestStorageAsTarget: function(creep) {
+        var objects = this.getObjectsSorted(creep, FIND_MY_STRUCTURES);
+        for (var i in objects) {
+            var object = objects[i];
 
-        // 가까운 소스 목록을 가져온다.
-        var sources = this.getObjectsSorted(creep, FIND_SOURCES_ACTIVE);
+            // 이 건물의 형식이 저장소가 아니면 건너뛴다.
+            if (object.structureType != STRUCTURE_CONTAINER) continue;
 
-        // 소스 목록을 순회한다.
-        for (var i in sources) {
-            // 소스를 가져온다.
-            var source = sources[i];
-
-            // 몇 개의 크립이 이 소스를 채집하고 있는지 확인한다.
-            var harvesters = this.getWorkerCreeps(source);
+            // 저장소가 가득 차있는 경우에도 건너뛴다.
+            if (object.store >= object.storeCapacity) continue;
             
-            // 해당 소스를 채집하고 있는 크립의 수가 CreepsPerSource보다 낮은 경우
-            // 크립보고 이 소스를 채집하라고 한다.
-            if (harvesters < coreSettings.CreepsPerSource) {
-                creep.memory.targetId = source.id;
-                creep.memory.harvesting = true;
-                return true;
-            }
-
-            // CreepsPerSource보다 크거나 같은 경우 건너뛴다.
-            else continue;
+            // 이 저장소를 대상으로 설정한다.
+            creep.memory.target = object.id;
+            return true;
         }
 
         return false;
     },
 
     /**
-     * 크립이 가장 가까운 공사 현장을 건설하도록 명령합니다.
-     * @param creep 건설 명령을 수행할 크립
-     * @returns 건설 대상이 설정된 경우 true, 그 외의 경우 false
+     * 지정된 크립에서 가장 가까우면서 작업 대상으로 설정할 수 있는 객체를 대상으로 설정합니다.
+     * @param creep 작업을 수행할 크립
+     * @param objectType 작업 대상 형식
+     * @returns 작업 대상이 설정된 경우 true, 그 외의 경우 false
      **/
-    buildClosestConstructionSite: function(creep) {
-        if (creep.memory.constructing) return true;
-        var constructionSites = this.getObjectsSorted(creep, FIND_MY_CONSTRUCTION_SITES);
-        for (var i in constructionSites) {
-            var constructionSite = constructionSites[i];
-            var workers = this.getWorkerCreeps(constructionSite);
-            if (workers < coreSettings.CreepsPerConstructionSite) {
-                creep.memory.targetId = constructionSite.id;
-                creep.memory.constructing = true;
+    setClosestObjectAsTarget: function(creep, objectType) {
+        // 목록을 추려낸다.
+        var objects = this.getObjectsSorted(creep, objectType);
+        
+        // 가장 가까운 객체부터 몇 개의 크립이 작업 대상으로 설정했는지 확인한다.
+        for (var i in objects) {
+            var object = objects[i];
+
+            // 이 객체를 작업 대상으로 지정한 크립의 수를 구한다.
+            var workers = getWorkerCreeps(object);
+
+            // 작업 크립의 수보다 작을 경우, 작업 대상으로 선택한다.
+            if (workers < Settings.CreepsPerObject) {
+                creep.memory.target = object.id;
                 return true;
             }
-            else continue;
         }
 
+        // 조건에 부합되는 대상을 찾지 못한 경우 false를 반환한다.
         return false;
     },
-}
-
-module.exports = coreUtils;
+};

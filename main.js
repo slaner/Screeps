@@ -1,13 +1,12 @@
-var baseAutoSpawn = require('base.autospawn');
+var AutoSpawn = require('basic.autospawn');
 var roleWorker = require('role.worker');
-var coreUtils = require('core.utils');
-var coreSettings = require('core.settings');
+var Settings = require('core.settings');
 
 module.exports.loop = function () {
-    baseAutoSpawn.spawnIfAvailable();
+    AutoSpawn.spawnIfAvailable();
     
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if (creep.memory.role == coreSettings.WorkerRole) roleWorker.run(creep);
+        if (creep.memory.role == Settings.WorkerRole) roleWorker.run(creep);
     }
 };
