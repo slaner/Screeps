@@ -22,6 +22,21 @@ module.exports = {
         return true;
     },
 
+    handleUpgradeJob: function(creep) {
+        // 운반하고 있는 에너지가 없다면 수행하지 않는다.
+        if (!creep.carry.energy) return false;
+        
+        // 대상이 설정되어 있지 않다면 수행한다.
+        if (!creep.memory.target) {
+            var result = Utils.setControllerAsTarget(creep);
+            if (!result) return false;
+        }
+
+        var target = Game.getObjectById(creep.memory.target);
+        result = creep.upgradeController(target, resourceType);
+        return this.__postProcess(creep, target, result);
+    },
+
     handleTransferJob: function(creep, resourceType = RESOURCE_ENERGY) {
         // 운반하고 있는 에너지가 없다면 수행하지 않는다.
         if (!creep.carry.energy) return false;
@@ -82,7 +97,7 @@ module.exports = {
         // 채집을 시도한다.
         result = creep.harvest(target);
 
-        // 범위를 벗어난 경우
+        // 범위를 벗어난 경우 
         if (result == ERR_NOT_IN_RANGE) {
             // 크립과 소스의 거리를 계산한다.
             var distance = Utils.getDistance(creep, target);

@@ -66,6 +66,14 @@ module.exports = {
         return objects;
     },
 
+    setControllerAsTarget: function(creep) {
+        if (!creep) return false;
+        if (!creep.room.controller) return false;
+        
+        creep.memory.target = creep.room.controller.id;
+        return true;
+    },
+
     /**
      * 지정된 크립에서 가장 가까우면서 에너지를 저장할 수 있는 저장소를 대상으로 설정합니다.
      * @param creep 작업을 수행할 크립
