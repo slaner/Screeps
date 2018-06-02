@@ -33,7 +33,7 @@ module.exports = {
         }
 
         var target = Game.getObjectById(creep.memory.target);
-        result = creep.upgradeController(target, resourceType);
+        result = creep.upgradeController(target);
         return this.__postProcess(creep, target, result);
     },
 
