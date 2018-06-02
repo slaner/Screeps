@@ -1,4 +1,6 @@
 module.exports = {
+    CreepBody: [MOVE, WORK, WORK, CARRY],
+
     SpawnerName: 'spawn',
 
     WorkerPrefix: 'worker',

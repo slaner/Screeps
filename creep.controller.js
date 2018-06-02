@@ -44,7 +44,7 @@ module.exports = {
         // 채집할 대상을 구하고, 채집 작업을 수행한다.
         var target = Game.getObjectById(creep.memory.target);
         result = creep.harvest(target);
-        __handleError(creep, target, result);
+        this.__handleError(creep, target, result);
 
         // 채집 작업이 성공한 경우
         if (result == OK) {
@@ -104,7 +104,7 @@ module.exports = {
 
         var target = Game.getObjectById(creep.memory.target);
         result = creep.transfer(target, resourceType);
-        __handleError(creep, target, result);
+        this.__handleError(creep, target, result);
         
         if (result == ERR_NO_BODYPART) {
             Utils.resetWorkerCreepMemory(creep);
@@ -132,7 +132,7 @@ module.exports = {
         
         var target = Game.getObjectById(creep.memory.target);
         result = creep.upgradeController(target);
-        __handleError(creep, target, result);
+        this.__handleError(creep, target, result);
         
         if (result == ERR_NO_BODYPART) {
             Utils.resetWorkerCreepMemory(creep);
@@ -160,7 +160,7 @@ module.exports = {
 
         var target = Game.getObjectById(creep.memory.target);
         result = creep.build(target);
-        __handleError(creep, target, result);
+        this.__handleError(creep, target, result);
         
         if (result == ERR_NO_BODYPART) {
             Utils.resetWorkerCreepMemory(creep);

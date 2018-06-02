@@ -19,9 +19,10 @@ module.exports = {
     /**
      * 크립을 생산할 수 있는지 확인합니다.
      * @param spawnerName 스포너의 이름입니다.
+     * @param creepBody 크립이 수행할 작업 정보입니다.
      */
-    canSpawn: function(spawnerName) {
-        return Game.spawns[spawnerName].spawnCreep([MOVE, WORK, CARRY], 'DUMMY_SPAWNER_NAME', {dryRun: true}) == OK;
+    canSpawn: function(spawnerName, creepBody) {
+        return Game.spawns[spawnerName].spawnCreep(creepBody, undefined, {dryRun: true}) == OK;
     },
 
     /**
