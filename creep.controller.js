@@ -80,11 +80,13 @@ module.exports = {
         
         // 대상이 설정되어 있지 않다면 수행한다.
         if (!creep.memory.target) {
-            // 가장 가까운 객체를 대상으로 설정한다.
-            var result = Utils.setClosestObjectAsTarget(creep, FIND_SOURCES_ACTIVE);
+            // 가장 가까운 대상으로 설정한다.
+            // 우선순위
+            // 떨어진 에너지 > 에너지 소스 > 리소스
+            var result = Utils.setClosestObjectAsTarget(creep, FIND_DROPPED_ENERGY);
 
             // 채집할 수 있는 객체를 모두 시도한다.
-            if (!result) result = Utils.setClosestObjectAsTarget(creep, FIND_DROPPED_ENERGY);
+            if (!result) result = Utils.setClosestObjectAsTarget(creep, FIND_SOURCES_ACTIVE);
             if (!result) result = Utils.setClosestObjectAsTarget(creep, FIND_DROPPED_RESOURCES);
 
             // 채집할 수 있는 객체가 없다면 false를 반환한다.
