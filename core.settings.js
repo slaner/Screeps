@@ -1,7 +1,7 @@
 module.exports = {
-    CreepBody: [MOVE, WORK, WORK, CARRY],
+    CreepBody: [MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY],
 
-    SpawnerName: 'spawn',
+    SpawnerName: 'spawner',
 
     WorkerPrefix: 'worker',
     WorkerRole: 'worker',
@@ -16,5 +16,7 @@ module.exports = {
     RetryUpdateHarvestSource: 5,
     RetryUpdateHarvestSourceDistance: 3,
     
-    NumberOfWorkers: 30,
+    NumberOfWorkers: 10,
+
+    TargetControllerLevel: 3,
 };

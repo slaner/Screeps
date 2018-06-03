@@ -22,7 +22,7 @@ module.exports = {
      * @param creepBody 크립이 수행할 작업 정보입니다.
      */
     canSpawn: function(spawnerName, creepBody) {
-        return Game.spawns[spawnerName].spawnCreep(creepBody, undefined, {dryRun: true}) == OK;
+        return Game.spawns[spawnerName].spawnCreep(creepBody, 'test_creep_spawn', {dryRun: true}) == OK;
     },
 
     /**
@@ -49,13 +49,14 @@ module.exports = {
     },
 
     /**
-     * 일꾼 크립의 메모리를 초기화합니다.
-     * @param creep 메모리를 초기화할 크립입니다.
+     * 일꾼 크립의 직업을 설정합니다.
+     * @param creep 직업을 설정할 크립입니다.
+     * @param creepJob 크립의 직업입니다.
      */
-    resetWorkerCreepMemory: function(creep) {
+    setWorkerJob: function(creep, creepJob) {
         creep.memory = {
-            role: creep.memory.role,
-            job: creep.memory.job,
+            role: Settings.WorkerRole,
+            job: creepJob,
         };
     },
 

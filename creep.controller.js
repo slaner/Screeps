@@ -5,6 +5,9 @@ var FlowControl = require('core.flowcontrol');
 module.exports = {
     __handleError: function(creep, target, result) {
         switch (result) {
+            case OK:
+                break;
+                
             // 거리 내에 없다면 대상 위치로 이동시킨다.
             case ERR_NOT_IN_RANGE:
                 creep.moveTo(target);
@@ -27,7 +30,7 @@ module.exports = {
         // 이 크립이 운반하고 있는 에너지가 최대치에 도달한 경우
         if (creep.carry.energy >= creep.carryCapacity) {
             // 자원 보관 작업을 수행하도록 설정한다.
-            creep.memory.job = Settings.JobTransfer;
+            Utils.setWorkerJob(creep, Settings.JobTransfer);
             return FlowControl.FLOW_CONTROL_RUN;
         }
 
@@ -50,10 +53,13 @@ module.exports = {
         if (result == OK) {
             // 값이 설정되어 있다면 없앤다.
             if (creep.memory.RefreshCount) {
+                var creepRole = creep.memory.role;
+                var creepJob = creep.memory.job;
+                var creepTarget = creep.memory.target;
                 creep.memory = {
-                    role: creep.memory.role,
-                    job: creep.memory.job,
-                    target: creep.memory.target,
+                    role: creepRole,
+                    job: creepJob,
+                    target: creepTarget,
                 };
             }
         }
@@ -72,14 +78,14 @@ module.exports = {
 
                 // RefreshCount값이 RetryUpdateHarvestSource와 같거나 크면 대상을 다시 설정하도록 메모리의 값을 비운다.
                 if (creep.memory.RefreshCount >= Settings.RetryUpdateHarvestSource) {
-                    Utils.resetWorkerCreepMemory(creep);
+                    Utils.setWorkerJob(creep, Settings.JobHarvest);
                 }
             }
         }
         
         // 채집 작업을 수행할 수 없는 크립인 경우 작업을 바꾼다.
         else if (result == ERR_NO_BODYPART) {
-            Utils.resetWorkerCreepMemory(creep);
+            // Utils.setWorkerJob(creep, Settings.JobHarvest);
             // TODO: 공격 또는 방어 등의 작업을 설정한다.
             return FlowControl.FLOW_CONTROL_RUN;
         }
@@ -88,7 +94,7 @@ module.exports = {
     },
     __transfer: function(creep, resourceType = RESOURCE_ENERGY) {
         if (!creep.carry.energy) {
-            creep.memory.job = Settings.JobHarvest;
+            Utils.setWorkerJob(creep, Settings.JobHarvest);
             return FlowControl.FLOW_CONTROL_STOP;
         }
         if (!creep.memory.target) {
@@ -97,7 +103,7 @@ module.exports = {
 
             // 에너지를 보관할 장소를 찾지 못했다면 업그레이드 작업을 수행하도록 설정한다.
             if (!result) {
-                creep.memory.job = Settings.Upgrade;
+                Utils.setWorkerJob(creep, Settings.JobUpgrade);
                 return FlowControl.FLOW_CONTROL_RUN;
             }
         }
@@ -106,8 +112,14 @@ module.exports = {
         result = creep.transfer(target, resourceType);
         this.__handleError(creep, target, result);
         
-        if (result == ERR_NO_BODYPART) {
-            Utils.resetWorkerCreepMemory(creep);
+        // 보관함이 꽉 찬 경우
+        if (result == ERR_FULL) {
+            // 업그레이드 작업을 수행하도록 설정한다.
+            Utils.setWorkerJob(creep, Settings.JobUpgrade);
+            return FlowControl.FLOW_CONTROL_RUN;
+        }
+        else if (result == ERR_NO_BODYPART) {
+            // Utils.setWorkerJob(creep, Settings.JobHarvest);
             // TODO: 공격 또는 방어 등의 작업을 설정한다.
             return FlowControl.FLOW_CONTROL_RUN;
         }
@@ -116,7 +128,7 @@ module.exports = {
     },
     __upgrade: function(creep) {
         if (!creep.carry.energy) {
-            creep.memory.job = Settings.JobHarvest;
+            Utils.setWorkerJob(creep, Settings.JobHarvest);
             return FlowControl.FLOW_CONTROL_STOP;
         }
         if (!creep.memory.target) {
@@ -125,17 +137,25 @@ module.exports = {
 
             // 컨트롤러를 찾지 못했다면 건설 작업을 수행하도록 설정한다.
             if (!result) {
-                creep.memory.job = Settings.JobBuild;
+                Utils.setWorkerJob(creep, Settings.JobBuild);
                 return FlowControl.FLOW_CONTROL_RUN;
             }
         }
         
         var target = Game.getObjectById(creep.memory.target);
+
+        // 컨트롤러의 레벨이 TargetControllerLevel보다 크거나 같으면
+        // 크립이 업그레이드가 아닌 건설 작업을 수행하도록 설정한다.
+        if (target.level >= Settings.TargetControllerLevel) {
+            Utils.setWorkerJob(creep, Settings.JobBuild);
+            return FlowControl.FLOW_CONTROL_RUN;
+        }
+
         result = creep.upgradeController(target);
         this.__handleError(creep, target, result);
         
         if (result == ERR_NO_BODYPART) {
-            Utils.resetWorkerCreepMemory(creep);
+            // Utils.setWorkerJob(creep, Settings.JobHarvest);
             // TODO: 공격 또는 방어 등의 작업을 설정한다.
             return FlowControl.FLOW_CONTROL_RUN;
         }
@@ -144,7 +164,7 @@ module.exports = {
     },
     __build: function(creep) {
         if (!creep.carry.energy) {
-            creep.memory.job = Settings.JobHarvest;
+            Utils.setWorkerJob(creep, Settings.JobHarvest);
             return FlowControl.FLOW_CONTROL_STOP;
         }
         if (!creep.memory.target) {
@@ -153,7 +173,7 @@ module.exports = {
 
             // 건설할 수 있는 대상이 없다면 채집 작업을 수행하도록 설정한다.
             if (!result) {
-                creep.memory.job = Settings.JobHarvest;
+                Utils.setWorkerJob(creep, Settings.JobHarvest);
                 return FlowControl.FLOW_CONTROL_RUN;
             }
         }
@@ -163,7 +183,7 @@ module.exports = {
         this.__handleError(creep, target, result);
         
         if (result == ERR_NO_BODYPART) {
-            Utils.resetWorkerCreepMemory(creep);
+            // Utils.setWorkerJob(creep, Settings.JobHarvest);
             // TODO: 공격 또는 방어 등의 작업을 설정한다.
             return FlowControl.FLOW_CONTROL_RUN;
         }
@@ -175,9 +195,14 @@ module.exports = {
      * @param creep 작업 명령을 수행할 크립
      */
     work: function(creep) {
+        console.log("Creep working now (Time: " + Game.time + ")");
+
         // 크립이 해야할 작업이 정해지지 않았다면 채집 작업부터 수행하도록 명령한다.
-        if (!creep.memory.job) creep.memory.job = Settings.JobHarvest;
-        
+        if (!creep.memory.job) {
+            creep.say('No Job');
+            Utils.setWorkerJob(creep, Settings.JobHarvest);
+        }
+
         var workResult = 0;
 
         // 채집 작업
@@ -203,7 +228,5 @@ module.exports = {
             workResult = this.__build(creep);
             if (workResult == FlowControl.FLOW_CONTROL_STOP) return;
         }
-
-
     },
 };
